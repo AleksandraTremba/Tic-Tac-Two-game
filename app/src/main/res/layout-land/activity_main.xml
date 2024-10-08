@@ -7,46 +7,18 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/restartbutton"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:text="Restart"
-        android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.3"
-        app:layout_constraintHeight_percent="0.1"
-        android:layout_marginStart="24dp"
-        android:minWidth="100dp"/>
-
-    <Button
-        android:id="@+id/menubutton"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:text="Menu"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.3"
-        app:layout_constraintHeight_percent="0.1"
-        android:layout_marginEnd="16dp"
-        android:singleLine="true"/>
-
-
     <GridLayout
         android:id="@+id/gridLayout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="350dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="100dp"
         android:columnCount="5"
         android:rowCount="5"
-        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_default="spread"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/restartbutton"
-        app:layout_constraintWidth_default="spread">
+        app:layout_constraintTop_toBottomOf="@+id/restartbutton">
 
         <!-- First row -->
         <Button
@@ -355,40 +327,41 @@
 
     </GridLayout>
 
+    <Button
+        android:id="@+id/restartbutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:text="Restart"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="16dp" />
+
+    <Button
+        android:id="@+id/menubutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginEnd="16dp"
+        android:text="Menu"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:layout_editor_absoluteY="16dp" />
+
     <ImageView
         android:id="@+id/imageView7"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:scaleType="centerInside"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/imageView8"
         app:layout_constraintTop_toBottomOf="@+id/gridLayout"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintWidth_percent="0.4"
-        app:layout_constraintHeight_percent="0.2"
         tools:srcCompat="@tools:sample/avatars" />
 
     <ImageView
         android:id="@+id/imageView8"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:scaleType="centerInside"
-        app:layout_constraintStart_toEndOf="@id/imageView7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/gridLayout"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintWidth_percent="0.4"
-        app:layout_constraintHeight_percent="0.2"
         tools:srcCompat="@tools:sample/avatars" />
-
-    <!-- Chain style to ensure both images align evenly on the same horizontal line -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintHorizontal_chainStyle="spread" />
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
