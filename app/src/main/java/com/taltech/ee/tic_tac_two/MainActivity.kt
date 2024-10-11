@@ -2,6 +2,8 @@ package com.taltech.ee.tic_tac_two
 
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -9,6 +11,10 @@ import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity() {
     private val buttonMap = mutableMapOf<Int, Button>()
+    private var currentPlayer = "X"
+    private val gameState = Array(5) { Array(5) { "" } }
+    private lateinit var imageViewX: ImageView
+    private lateinit var imageViewO: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,11 +26,19 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        imageViewX = findViewById(R.id.imageView)
+        imageViewO = findViewById(R.id.imageView2)
+        updatePlayerImages()
+
         for (i in 1..25) {
             val buttonId = resources.getIdentifier("game_button$i", "id", packageName)
             val button = findViewById<Button>(buttonId)
             buttonMap[i] = button
             enable3x3CenterGrid()
+
+            button.setOnClickListener {
+                onButtonClicked(button, i)
+            }
 
             button.setOnLongClickListener {
                 val tag = it.tag.toString().toInt()
@@ -32,6 +46,64 @@ class MainActivity : AppCompatActivity() {
                 true
             }
         }
+    }
+
+    private fun updatePlayerImages() {
+        if (currentPlayer == "X") {
+            imageViewX.setImageResource(R.drawable.x_active) // Set active for player X
+            imageViewO.setImageResource(R.drawable.o_notactive) // Set inactive for player O
+        } else {
+            imageViewX.setImageResource(R.drawable.x_notactive) // Set inactive for player X
+            imageViewO.setImageResource(R.drawable.o_active) // Set active for player O
+        }
+    }
+
+    private fun onButtonClicked(button: Button, buttonIndex: Int) {
+        // Only proceed if the button is not already clicked
+        if (gameState[(buttonIndex - 1) / 5][(buttonIndex - 1) % 5] == "") {
+            // Update game state and button text
+            gameState[(buttonIndex - 1) / 5][(buttonIndex - 1) % 5] = currentPlayer
+            button.text = currentPlayer
+
+            // Check for a win
+            if (checkWin()) {
+                Toast.makeText(this, "Player $currentPlayer wins!", Toast.LENGTH_SHORT).show()
+                resetGame()
+                return
+            }
+
+            // Switch player
+            currentPlayer = if (currentPlayer == "X") "O" else "X"
+            updatePlayerImages()
+        }
+    }
+
+    private fun checkWin(): Boolean {
+        // Check rows, columns, and diagonals for a win
+        for (i in 0..4) {
+            if (gameState[i].all { it == currentPlayer }) return true // Check row
+            if (gameState.map { it[i] }.all { it == currentPlayer }) return true // Check column
+        }
+        // Check diagonals
+        if ((0 until 5).all { gameState[it][it] == currentPlayer }) return true
+        if ((0 until 5).all { gameState[it][4 - it] == currentPlayer }) return true
+        return false
+    }
+
+    private fun resetGame() {
+        // Clear game state and reset buttons
+        for (button in buttonMap.values) {
+            button.text = ""
+            button.isClickable = true
+        }
+        currentPlayer = "X" // Reset to Player X
+        for (i in gameState.indices) {
+            for (j in gameState[i].indices) {
+                gameState[i][j] = "" // Reset game state
+            }
+        }
+        enable3x3CenterGrid() // Re-enable center grid
+        updatePlayerImages()
     }
 
     private fun enable3x3CenterGrid() {
