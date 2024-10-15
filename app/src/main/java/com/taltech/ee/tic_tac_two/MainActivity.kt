@@ -1,5 +1,6 @@
 package com.taltech.ee.tic_tac_two
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
@@ -15,6 +16,7 @@ class MainActivity : AppCompatActivity() {
     private val gameState = Array(5) { Array(5) { "" } }
     private lateinit var imageViewX: ImageView
     private lateinit var imageViewO: ImageView
+    private var currentGridCenter = 13
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +31,17 @@ class MainActivity : AppCompatActivity() {
         imageViewX = findViewById(R.id.imageView)
         imageViewO = findViewById(R.id.imageView2)
         updatePlayerImages()
+
+        val menuButton = findViewById<Button>(R.id.menuButton)
+        menuButton.setOnClickListener {
+            val intent = Intent(this, MenuActivity::class.java)
+            startActivity(intent)
+        }
+
+        val restartButton = findViewById<Button>(R.id.restartButton)
+        restartButton.setOnClickListener {
+            resetGame()
+        }
 
         for (i in 1..25) {
             val buttonId = resources.getIdentifier("game_button$i", "id", packageName)
@@ -60,41 +73,60 @@ class MainActivity : AppCompatActivity() {
 
     private fun onButtonClicked(button: Button, buttonIndex: Int) {
         // Only proceed if the button is not already clicked
-        if (gameState[(buttonIndex - 1) / 5][(buttonIndex - 1) % 5] == "") {
-            // Update game state and button text
-            gameState[(buttonIndex - 1) / 5][(buttonIndex - 1) % 5] = currentPlayer
-            button.text = currentPlayer
+        if (button.isClickable) {
+            if (gameState[(buttonIndex - 1) / 5][(buttonIndex - 1) % 5] == "") {
+                // Update game state and button text
+                gameState[(buttonIndex - 1) / 5][(buttonIndex - 1) % 5] = currentPlayer
+                button.text = currentPlayer
 
-            // Check for a win
-            if (checkWin()) {
-                Toast.makeText(this, "Player $currentPlayer wins!", Toast.LENGTH_SHORT).show()
-                resetGame()
-                return
+                // Check for a win
+                if (checkWin()) {
+                    Toast.makeText(this, "Player $currentPlayer wins!", Toast.LENGTH_SHORT).show()
+                    resetGame()
+                    return
+                }
+
+                // Switch player
+                currentPlayer = if (currentPlayer == "X") "O" else "X"
+                updatePlayerImages()
             }
-
-            // Switch player
-            currentPlayer = if (currentPlayer == "X") "O" else "X"
-            updatePlayerImages()
         }
     }
 
     private fun checkWin(): Boolean {
-        // Check rows, columns, and diagonals for a win
-        for (i in 0..4) {
-            if (gameState[i].all { it == currentPlayer }) return true // Check row
-            if (gameState.map { it[i] }.all { it == currentPlayer }) return true // Check column
+        val centerRow = (currentGridCenter - 1) / 5
+        val centerColumn = (currentGridCenter - 1) % 5
+
+        val minRow = maxOf(0, centerRow - 1)
+        val maxRow = minOf(4, centerRow + 1)
+        val minColumn = maxOf(0, centerColumn - 1)
+        val maxColumn = minOf(4, centerColumn + 1)
+
+        // Check rows and columns
+        for (row in minRow..maxRow) {
+            if ((minColumn..maxColumn).all { gameState[row][it] == currentPlayer }) return true // Check row
         }
+        for (col in minColumn..maxColumn) {
+            if ((minRow..maxRow).all { gameState[it][col] == currentPlayer }) return true // Check column
+        }
+
         // Check diagonals
-        if ((0 until 5).all { gameState[it][it] == currentPlayer }) return true
-        if ((0 until 5).all { gameState[it][4 - it] == currentPlayer }) return true
+        if (centerRow == centerColumn) {
+            if ((minRow..maxRow).all { gameState[it][it + (minColumn - minRow)] == currentPlayer }) return true
+        }
+        if (centerRow + centerColumn == 2) {
+            if ((minRow..maxRow).all { gameState[it][maxColumn - (it - minRow)] == currentPlayer }) return true
+        }
+
         return false
     }
+
 
     private fun resetGame() {
         // Clear game state and reset buttons
         for (button in buttonMap.values) {
             button.text = ""
-            button.isClickable = true
+            button.isClickable
         }
         currentPlayer = "X" // Reset to Player X
         for (i in gameState.indices) {
@@ -134,6 +166,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun enable3x3Grid(tag: Int) {
+        currentGridCenter = tag
         // First, disable all buttons
         for (button in buttonMap.values) {
             button.isClickable = false
@@ -171,5 +204,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        currentPlayer = if (currentPlayer == "X") "O" else "X"
+        updatePlayerImages()
     }
 }
