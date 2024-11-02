@@ -52,7 +52,8 @@
             android:layout_gravity="fill"
             android:layout_margin="5dp"
             android:tag="1"
-            android:text="" />
+            android:text=""
+            />
 
         <Button
             android:id="@+id/game_button2"

@@ -13,8 +13,6 @@
         android:layout_margin="32dp"
         android:padding="24dp"
         android:strokeWidth="3"
-        android:strokeColor="@android:color/black"
-        app:cardBackgroundColor="@android:color/white"
         app:cardCornerRadius="24dp"
         app:cardElevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"

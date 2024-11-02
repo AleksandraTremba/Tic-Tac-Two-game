@@ -2,6 +2,7 @@ package com.taltech.ee.tic_tac_two
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.TypedValue
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
@@ -139,9 +140,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun enable3x3CenterGrid() {
+        // Get the colors from the theme
+        val buttonColor = TypedValue().apply {
+            theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, this, true)
+        }.data
+
+        val buttonColorGrid = TypedValue().apply {
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSecondary, this, true)
+        }.data
+
         for (button in buttonMap.values) {
             button.isClickable = false
-            button.setBackgroundColor(getColor(com.google.android.material.R.color.design_default_color_background))
+            button.setBackgroundColor(buttonColor)
         }
 
         // Calculate the center button's row and column
@@ -158,19 +168,28 @@ class MainActivity : AppCompatActivity() {
                 val buttonTag = row * 5 + col + 1
                 buttonMap[buttonTag]?.apply {
                     isClickable = true
-                    setBackgroundColor(getColor(R.color.black))
+                    setBackgroundColor(buttonColorGrid)
                 }
             }
         }
     }
 
 
+
     private fun enable3x3Grid(tag: Int) {
+        val buttonColor = TypedValue().apply {
+            theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, this, true)
+        }.data
+
+        val buttonColorGrid = TypedValue().apply {
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSecondary, this, true)
+        }.data
+
         currentGridCenter = tag
         // First, disable all buttons
         for (button in buttonMap.values) {
             button.isClickable = false
-            button.setBackgroundColor(getColor(com.google.android.material.R.color.design_default_color_background))
+            button.setBackgroundColor(buttonColor)
         }
         var centerTag = when (tag) {
             1, 2, 6 -> 7
@@ -200,7 +219,7 @@ class MainActivity : AppCompatActivity() {
                 buttonMap[buttonTag]?.apply {
                     isClickable = true
                     // Change the button color to the "enabled" color
-                    setBackgroundColor(getColor(R.color.black))
+                    setBackgroundColor(buttonColorGrid)
                 }
             }
         }
