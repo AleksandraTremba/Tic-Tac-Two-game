@@ -385,19 +385,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <ImageView
-            android:id="@+id/imageView"
+        <Button
+            android:id="@+id/x_button"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="2"
-            tools:srcCompat="@tools:sample/avatars" />
+            android:text="X"
+            android:padding="16dp" />
 
-        <ImageView
-            android:id="@+id/imageView2"
+        <Button
+            android:id="@+id/o_button"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="2"
-            tools:srcCompat="@tools:sample/avatars" />
+            android:text="O"
+            android:padding="16dp" />
+
     </LinearLayout>
 
 

@@ -15,8 +15,8 @@ class MainActivity : AppCompatActivity() {
     private val buttonMap = mutableMapOf<Int, Button>()
     private var currentPlayer = "X"
     private val gameState = Array(5) { Array(5) { "" } }
-    private lateinit var imageViewX: ImageView
-    private lateinit var imageViewO: ImageView
+    private lateinit var imageViewX: Button
+    private lateinit var imageViewO: Button
     private var currentGridCenter = 13
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,8 +29,8 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        imageViewX = findViewById(R.id.imageView)
-        imageViewO = findViewById(R.id.imageView2)
+        imageViewX = findViewById<Button>(R.id.x_button)
+        imageViewO = findViewById<Button>(R.id.o_button)
         updatePlayerImages()
 
         val menuButton = findViewById<Button>(R.id.menuButton)
@@ -63,12 +63,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePlayerImages() {
+        val buttonColor = TypedValue().apply {
+            theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, this, true)
+        }.data
+
+        val buttonColorGrid = TypedValue().apply {
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSecondary, this, true)
+        }.data
         if (currentPlayer == "X") {
-            imageViewX.setImageResource(R.drawable.x_active) // Set active for player X
-            imageViewO.setImageResource(R.drawable.o_notactive) // Set inactive for player O
+            imageViewX.setBackgroundColor(buttonColorGrid) // Set active for player X
+            imageViewO.setBackgroundColor(buttonColor) // Set inactive for player O
         } else {
-            imageViewX.setImageResource(R.drawable.x_notactive) // Set inactive for player X
-            imageViewO.setImageResource(R.drawable.o_active) // Set active for player O
+            imageViewX.setBackgroundColor(buttonColor) // Set inactive for player X
+            imageViewO.setBackgroundColor(buttonColorGrid) // Set active for player O
         }
     }
 
