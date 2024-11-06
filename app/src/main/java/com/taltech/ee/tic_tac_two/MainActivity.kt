@@ -2,19 +2,20 @@ package com.taltech.ee.tic_tac_two
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.util.TypedValue
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import kotlin.random.Random
+
 
 class MainActivity : AppCompatActivity() {
     private val buttonMap = mutableMapOf<Int, Button>()
@@ -33,6 +34,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
+
+    private lateinit var musicPlayerHelper: MusicPlayerHelper
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +61,9 @@ class MainActivity : AppCompatActivity() {
 
         val isBotEnabled = intent.getBooleanExtra("enableBot", false)
         isBotActive = isBotEnabled
+
+        MusicPlayerHelper.initialize(this)
+        MusicPlayerHelper.startMusic()
 
         imageViewX = findViewById<Button>(R.id.x_button)
         imageViewO = findViewById<Button>(R.id.o_button)
@@ -381,5 +389,10 @@ class MainActivity : AppCompatActivity() {
         if (isBotActive == true) {
             isBotActive = false
         } else isBotActive = true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        MusicPlayerHelper.release()
     }
 }
