@@ -35,6 +35,14 @@
                 android:text="Stop Music"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="16dp"/>
+            <Button
+                android:id="@+id/toggleSoundButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Turn Sounds Off"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"/>
+
 
 
 

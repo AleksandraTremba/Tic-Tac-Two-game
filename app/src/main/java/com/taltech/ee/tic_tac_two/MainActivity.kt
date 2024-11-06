@@ -34,8 +34,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
-
-    private lateinit var musicPlayerHelper: MusicPlayerHelper
+    private var turnMediaPlayer: MediaPlayer? = null
 
 
 
@@ -64,6 +63,8 @@ class MainActivity : AppCompatActivity() {
 
         MusicPlayerHelper.initialize(this)
         MusicPlayerHelper.startMusic()
+        SoundEffectsHelper.initialize(this)
+
 
         imageViewX = findViewById<Button>(R.id.x_button)
         imageViewO = findViewById<Button>(R.id.o_button)
@@ -143,6 +144,7 @@ class MainActivity : AppCompatActivity() {
         button?.let {
             it.text = "O" // Set the bot's symbol
             gameState[randomRow][randomColumn] = "O" // Update the game state
+            SoundEffectsHelper.playOTurn(this)
 
             // Check for a win after the bot's move
             if (checkWin()) {
@@ -186,7 +188,14 @@ class MainActivity : AppCompatActivity() {
                 if (gameState[(buttonIndex - 1) / 5][(buttonIndex - 1) % 5] == "") {
                     // Update game state and button text
                     gameState[(buttonIndex - 1) / 5][(buttonIndex - 1) % 5] = currentPlayer
-                    button.text = currentPlayer
+
+                    if (currentPlayer == "X") {
+                        button.text = currentPlayer
+                        SoundEffectsHelper.playXTurn(this)
+                    } else {
+                        button.text = currentPlayer
+                        SoundEffectsHelper.playOTurn(this)
+                    }
 
                     // Check for a win
                     if (checkWin()) {
@@ -207,6 +216,7 @@ class MainActivity : AppCompatActivity() {
                         // Update game state and button text
                         gameState[(buttonIndex - 1) / 5][(buttonIndex - 1) % 5] = currentPlayer
                         button.text = currentPlayer
+                        SoundEffectsHelper.playXTurn(this)
 
                         // Check for a win
                         if (checkWin()) {
@@ -394,5 +404,6 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         MusicPlayerHelper.release()
+        SoundEffectsHelper.release()
     }
 }
