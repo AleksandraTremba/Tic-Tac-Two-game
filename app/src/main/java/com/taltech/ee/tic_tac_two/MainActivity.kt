@@ -61,9 +61,9 @@ class MainActivity : AppCompatActivity() {
         val isBotEnabled = intent.getBooleanExtra("enableBot", false)
         isBotActive = isBotEnabled
 
-        MusicPlayerHelper.initialize(this)
-        MusicPlayerHelper.startMusic()
-        SoundEffectsHelper.initialize(this)
+//        MusicPlayerHelper.initialize(this)
+//        MusicPlayerHelper.startMusic()
+        SoundEffectHelper.initialize(this)
 
 
         imageViewX = findViewById<Button>(R.id.x_button)
@@ -94,6 +94,11 @@ class MainActivity : AppCompatActivity() {
             button.setOnLongClickListener {
                 val tag = it.tag.toString().toInt()
                 enable3x3Grid(tag)
+                if (isBotActive && currentPlayer == "O") {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        botTurn()
+                    }, 1000)
+                }
                 true
             }
         }
@@ -144,7 +149,7 @@ class MainActivity : AppCompatActivity() {
         button?.let {
             it.text = "O" // Set the bot's symbol
             gameState[randomRow][randomColumn] = "O" // Update the game state
-            SoundEffectsHelper.playOTurn(this)
+            SoundEffectHelper.playOTurn(this)
 
             // Check for a win after the bot's move
             if (checkWin()) {
@@ -191,10 +196,10 @@ class MainActivity : AppCompatActivity() {
 
                     if (currentPlayer == "X") {
                         button.text = currentPlayer
-                        SoundEffectsHelper.playXTurn(this)
+                        SoundEffectHelper.playXTurn(this)
                     } else {
                         button.text = currentPlayer
-                        SoundEffectsHelper.playOTurn(this)
+                        SoundEffectHelper.playOTurn(this)
                     }
 
                     // Check for a win
@@ -216,7 +221,7 @@ class MainActivity : AppCompatActivity() {
                         // Update game state and button text
                         gameState[(buttonIndex - 1) / 5][(buttonIndex - 1) % 5] = currentPlayer
                         button.text = currentPlayer
-                        SoundEffectsHelper.playXTurn(this)
+                        SoundEffectHelper.playXTurn(this)
 
                         // Check for a win
                         if (checkWin()) {
@@ -254,17 +259,50 @@ class MainActivity : AppCompatActivity() {
 
         // Check rows and columns
         for (row in minRow..maxRow) {
-            if ((minColumn..maxColumn).all { gameState[row][it] == currentPlayer }) winDetected = true
+            Log.d("WIN", "Checking row $row for player $currentPlayer")
+            for (col in minColumn..maxColumn) {
+                Log.d("WIN", "Cell [$row][$col] = ${gameState[row][col]}")
+            }
+            if ((minColumn..maxColumn).all { gameState[row][it] == currentPlayer }) {
+                Log.d("WIN", "Row $row is fully occupied by $currentPlayer. Win detected.")
+                winDetected = true
+            }
         }
+
         for (col in minColumn..maxColumn) {
-            if ((minRow..maxRow).all { gameState[it][col] == currentPlayer }) winDetected = true
+            Log.d("WIN", "Checking column $col for player $currentPlayer")
+            for (row in minRow..maxRow) {
+                Log.d("WIN", "Cell [$row][$col] = ${gameState[row][col]}")
+            }
+            if ((minRow..maxRow).all { gameState[it][col] == currentPlayer }) {
+                Log.d("WIN", "Column $col is fully occupied by $currentPlayer. Win detected.")
+                winDetected = true
+            }
         }
 
         // Check main diagonal (top-left to bottom-right)
-        if ((minRow..maxRow).all { gameState[it][it - minRow + minColumn] == currentPlayer }) winDetected = true
+        Log.d("WIN", "Checking main diagonal for player $currentPlayer")
+        if ((minRow..maxRow).all {
+                val row = it
+                val col = it - minRow + minColumn
+                Log.d("WIN", "Cell [$row][$col] = ${gameState[row][col]}")
+                gameState[row][col] == currentPlayer
+            }) {
+            Log.d("WIN", "Main diagonal is fully occupied by $currentPlayer. Win detected.")
+            winDetected = true
+        }
 
         // Check anti-diagonal (top-right to bottom-left)
-        if ((minRow..maxRow).all { gameState[it][maxColumn - (it - minRow)] == currentPlayer }) winDetected = true
+        Log.d("WIN", "Checking anti-diagonal for player $currentPlayer")
+        if ((minRow..maxRow).all {
+                val row = it
+                val col = maxColumn - (it - minRow)
+                Log.d("WIN", "Cell [$row][$col] = ${gameState[row][col]}")
+                gameState[row][col] == currentPlayer
+            }) {
+            Log.d("WIN", "Anti-diagonal is fully occupied by $currentPlayer. Win detected.")
+            winDetected = true
+        }
 
         if (winDetected) {
             // Increment the appropriate win counter
@@ -391,6 +429,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        checkWin()
+
         currentPlayer = if (currentPlayer == "X") "O" else "X"
         updatePlayerImages()
     }
@@ -404,6 +445,8 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         MusicPlayerHelper.release()
-        SoundEffectsHelper.release()
+        SoundEffectHelper.release()
     }
+
+
 }

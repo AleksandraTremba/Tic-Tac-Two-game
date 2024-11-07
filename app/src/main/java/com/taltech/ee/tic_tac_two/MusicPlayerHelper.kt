@@ -6,6 +6,8 @@ import android.media.MediaPlayer
 object MusicPlayerHelper {
     private var mediaPlayer: MediaPlayer? = null
     private var isInitialized = false
+    private var shouldResumeMusic = true
+
 
     fun initialize(context: Context) {
         if (!isInitialized) {
@@ -29,6 +31,21 @@ object MusicPlayerHelper {
             if (it.isPlaying) {
                 it.pause()
             }
+        }
+        shouldResumeMusic = false
+    }
+
+    fun pauseMusic() {
+        mediaPlayer?.let {
+            if (it.isPlaying) {
+                it.pause()
+            }
+        }
+    }
+
+    fun resumeMusic() {
+        if (shouldResumeMusic) {
+            startMusic()
         }
     }
 

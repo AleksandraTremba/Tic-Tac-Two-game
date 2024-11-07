@@ -4,7 +4,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.content.SharedPreferences
 
-object SoundEffectsHelper {
+object SoundEffectHelper {
     private var mediaPlayer: MediaPlayer? = null
     private lateinit var sharedPreferences: SharedPreferences
 
