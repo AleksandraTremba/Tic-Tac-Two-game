@@ -8,8 +8,8 @@
     <!-- Menu container with rounded corners and bold borders -->
     <androidx.cardview.widget.CardView
         android:id="@+id/menuCard"
-        android:layout_width="342dp"
-        android:layout_height="639dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_margin="32dp"
         android:padding="24dp"
         android:strokeWidth="3"
@@ -72,6 +72,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Settings" />
+
+            <TextView
+                android:id="@+id/musicCredits"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center"
+                android:text="Music by W_01"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

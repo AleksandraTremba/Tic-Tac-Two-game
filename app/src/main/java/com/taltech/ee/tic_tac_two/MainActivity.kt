@@ -14,13 +14,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModelProvider
 import kotlin.random.Random
 
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var viewModel: GameViewModel
     private val buttonMap = mutableMapOf<Int, Button>()
     private var currentPlayer = "X"
-    private val gameState = Array(5) { Array(5) { "" } }
+    private var gameState = Array(5) { Array(5) { "" } }
     private lateinit var imageViewX: Button
     private lateinit var imageViewO: Button
     private var currentGridCenter = 13
@@ -47,6 +49,16 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        viewModel = ViewModelProvider(this).get(GameViewModel::class.java)
+
+        // Use viewModel to get and set data
+        currentPlayer = viewModel.currentPlayer
+        gameState = viewModel.gameState
+        xWins = viewModel.xWins
+        oWins = viewModel.oWins
+        humanWins = viewModel.humanWins
+        botWins = viewModel.botWins
 
         // Initialize SharedPreferences
         sharedPreferences = getSharedPreferences("TicTacToeStats", MODE_PRIVATE)
@@ -103,6 +115,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+
 
     private fun botTurn() {
         Log.d("BOT", "bot started the turn")
@@ -448,5 +462,44 @@ class MainActivity : AppCompatActivity() {
         SoundEffectHelper.release()
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        // Save the game state, including the game grid and the current player
+        outState.putSerializable("gameState", gameState)
+        outState.putString("currentPlayer", currentPlayer)
+        outState.putInt("currentGridCenter", currentGridCenter)
+
+        // Save any other states like wins if needed
+        outState.putInt("xWins", xWins)
+        outState.putInt("oWins", oWins)
+        outState.putInt("humanWins", humanWins)
+        outState.putInt("botWins", botWins)
+
+    }
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+
+        // Restore the game state
+        gameState = savedInstanceState.getSerializable("gameState") as Array<Array<String>>
+        currentPlayer = savedInstanceState.getString("currentPlayer", "X") ?: "X"
+        currentGridCenter = savedInstanceState.getInt("currentGridCenter", 13)
+
+        // Restore the win counters if needed
+        xWins = savedInstanceState.getInt("xWins", 0)
+        oWins = savedInstanceState.getInt("oWins", 0)
+        humanWins = savedInstanceState.getInt("humanWins", 0)
+        botWins = savedInstanceState.getInt("botWins", 0)
+
+        // Update the UI (button texts and colors) after restoring the state
+        updatePlayerImages()
+
+        // Restore the buttons' texts
+        for (i in 1..25) {
+            val button = buttonMap[i]
+            button?.text = gameState[(i - 1) / 5][(i - 1) % 5]
+            button?.isClickable = gameState[(i - 1) / 5][(i - 1) % 5].isEmpty()
+        }
+    }
 
 }
