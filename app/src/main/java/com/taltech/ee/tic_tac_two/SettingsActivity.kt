@@ -1,19 +1,17 @@
 package com.taltech.ee.tic_tac_two
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 
-class SettingsActivity : AppCompatActivity(){
+class SettingsActivity : AppCompatActivity() {
     private lateinit var stopMusicButton: Button
     private lateinit var toggleSoundButton: Button
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
-    private var isMusicPlaying = true
+    private var isMusicPaused = false // Track whether music is paused
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,17 +23,15 @@ class SettingsActivity : AppCompatActivity(){
         stopMusicButton = findViewById(R.id.stopMusicButton)
         toggleSoundButton = findViewById(R.id.toggleSoundButton)
 
-        updateSoundButtonText()
-        updateButtonText()
+        // Get the current state of the music (paused or playing) from shared preferences
+        isMusicPaused = sharedPreferences.getBoolean("isMusicPaused", false)
+
+        // Update button text based on music state
+        updateMusicButtonText()
 
         stopMusicButton.setOnClickListener {
-            isMusicPlaying = !isMusicPlaying
-            if (isMusicPlaying) {
-                startService(Intent(this, MusicService::class.java))
-            } else {
-                stopService(Intent(this, MusicService::class.java))
-            }
-            updateButtonText()
+            toggleMusic()
+            updateMusicButtonText()
         }
 
         toggleSoundButton.setOnClickListener {
@@ -44,13 +40,26 @@ class SettingsActivity : AppCompatActivity(){
         }
     }
 
+    private fun toggleMusic() {
+        val musicIntent = Intent(this, MusicService::class.java)
+        if (isMusicPaused) {
+            musicIntent.action = "RESUME_MUSIC"
+            startService(musicIntent)
+        } else {
+            musicIntent.action = "PAUSE_MUSIC"
+            startService(musicIntent)
+        }
+        isMusicPaused = !isMusicPaused // Toggle the state
+    }
+
     private fun toggleSoundEffects() {
         val soundEffectsEnabled = sharedPreferences.getBoolean("soundEffectsEnabled", true)
         editor.putBoolean("soundEffectsEnabled", !soundEffectsEnabled).apply()
     }
 
-    private fun updateButtonText() {
-        stopMusicButton.text = if (isMusicPlaying) "Stop Music" else "Start Music"
+    private fun updateMusicButtonText() {
+        // Update the button text depending on whether music is paused
+        stopMusicButton.text = if (isMusicPaused) "Resume Music" else "Pause Music"
     }
 
     private fun updateSoundButtonText() {
