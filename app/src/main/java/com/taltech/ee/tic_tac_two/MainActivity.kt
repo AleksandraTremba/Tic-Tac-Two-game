@@ -2,7 +2,6 @@ package com.taltech.ee.tic_tac_two
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.res.Configuration
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
@@ -74,8 +73,6 @@ class MainActivity : AppCompatActivity() {
         val isBotEnabled = intent.getBooleanExtra("enableBot", false)
         isBotActive = isBotEnabled
 
-//        MusicPlayerHelper.initialize(this)
-//        MusicPlayerHelper.startMusic()
         SoundEffectHelper.initialize(this)
 
 
@@ -107,6 +104,11 @@ class MainActivity : AppCompatActivity() {
             button.setOnLongClickListener {
                 val tag = it.tag.toString().toInt()
                 enable3x3Grid(tag)
+                checkWin()
+                if (checkWin()) {
+                    Toast.makeText(this, "Player $currentPlayer wins!", Toast.LENGTH_SHORT).show()
+                    resetGame()
+                }
                 if (isBotActive && currentPlayer == "O") {
                     Handler(Looper.getMainLooper()).postDelayed({
                         botTurn()
@@ -268,6 +270,18 @@ class MainActivity : AppCompatActivity() {
 
         var winDetected = false
 
+        Log.d("WIN", "Current 3x3 grid:")
+        for (row in minRow..maxRow) {
+            val rowString = (minColumn..maxColumn).joinToString("") {
+                when (gameState[row][it]) {
+                    "X" -> "X"
+                    "O" -> "O"
+                    else -> "-" // Empty cell
+                }
+            }
+            Log.d("WIN", rowString)
+        }
+
         // Check rows and columns
         for (row in minRow..maxRow) {
             Log.d("WIN", "Checking row $row for player $currentPlayer")
@@ -352,6 +366,7 @@ class MainActivity : AppCompatActivity() {
                 gameState[i][j] = "" // Reset game state
             }
         }
+        currentGridCenter = 13  // Ensure the center is reset to 13
         enable3x3CenterGrid() // Re-enable center grid
         updatePlayerImages()
     }
@@ -457,6 +472,9 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         MusicPlayerHelper.release()
         SoundEffectHelper.release()
+        gameState = Array(5) { Array(5) { "" } }
+        buttonMap.clear()
+
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -481,7 +499,7 @@ class MainActivity : AppCompatActivity() {
         gameState = savedInstanceState.getSerializable("gameState") as Array<Array<String>>
         currentPlayer = savedInstanceState.getString("currentPlayer", "X") ?: "X"
         currentGridCenter = savedInstanceState.getInt("currentGridCenter", 13)
-
+        enable3x3Grid(currentGridCenter)
         // Restore the win counters if needed
         xWins = savedInstanceState.getInt("xWins", 0)
         oWins = savedInstanceState.getInt("oWins", 0)

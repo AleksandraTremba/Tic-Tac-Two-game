@@ -1,12 +1,14 @@
 package com.taltech.ee.tic_tac_two
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.media.MediaPlayer
 import android.os.IBinder
+import androidx.core.app.JobIntentService
 
-class MusicService : Service() {
+class MusicService : JobIntentService() {
     private var mediaPlayer: MediaPlayer? = null
     private var isPaused = false
 
@@ -18,16 +20,12 @@ class MusicService : Service() {
         }
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
+    override fun onHandleWork(intent: Intent) {
+        when (intent.action) {
             "PAUSE_MUSIC" -> pauseMusic()
             "RESUME_MUSIC" -> resumeMusic()
             "STOP_MUSIC" -> stopMusic() // Fully stops the music and releases resources
-            else -> if (mediaPlayer?.isPlaying == false && !isPaused) {
-                mediaPlayer?.start()
-            }
         }
-        return START_STICKY
     }
 
     private fun pauseMusic() {
@@ -65,5 +63,10 @@ class MusicService : Service() {
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent?): IBinder? = null
+    companion object {
+        // Helper method to enqueue work
+        fun enqueueWork(context: Context, work: Intent) {
+            enqueueWork(context, MusicService::class.java, 1, work)
+        }
+    }
 }
