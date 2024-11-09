@@ -1,6 +1,7 @@
 package com.taltech.ee.tic_tac_two
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
@@ -12,10 +13,10 @@ class SettingsActivity : AppCompatActivity(){
     private lateinit var toggleSoundButton: Button
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
+    private var isMusicPlaying = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_settings)
 
         sharedPreferences = getSharedPreferences("TicTacToeSettings", MODE_PRIVATE)
@@ -24,11 +25,16 @@ class SettingsActivity : AppCompatActivity(){
         stopMusicButton = findViewById(R.id.stopMusicButton)
         toggleSoundButton = findViewById(R.id.toggleSoundButton)
 
-        // Set initial button text based on the current state
         updateSoundButtonText()
+        updateButtonText()
 
         stopMusicButton.setOnClickListener {
-            toggleMusic()
+            isMusicPlaying = !isMusicPlaying
+            if (isMusicPlaying) {
+                startService(Intent(this, MusicService::class.java))
+            } else {
+                stopService(Intent(this, MusicService::class.java))
+            }
             updateButtonText()
         }
 
@@ -38,23 +44,13 @@ class SettingsActivity : AppCompatActivity(){
         }
     }
 
-    private fun toggleMusic() {
-        if (MusicPlayerHelper.isPlaying()) {
-            MusicPlayerHelper.stopMusic()
-        } else {
-            MusicPlayerHelper.startMusic()
-        }
-    }
-
     private fun toggleSoundEffects() {
-        // Toggle the sound effects setting
         val soundEffectsEnabled = sharedPreferences.getBoolean("soundEffectsEnabled", true)
         editor.putBoolean("soundEffectsEnabled", !soundEffectsEnabled).apply()
     }
 
     private fun updateButtonText() {
-        val isMusicOn = MusicPlayerHelper.isPlaying()
-        stopMusicButton.text = if (isMusicOn) "Stop Music" else "Start Music"
+        stopMusicButton.text = if (isMusicPlaying) "Stop Music" else "Start Music"
     }
 
     private fun updateSoundButtonText() {

@@ -2,40 +2,31 @@ package com.taltech.ee.tic_tac_two
 
 import android.app.Activity
 import android.app.Application
+import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ProcessLifecycleOwner
 
-class App : Application(), Application.ActivityLifecycleCallbacks {
-    private var activityCount = 0
+class App : Application(), LifecycleObserver {
 
     override fun onCreate() {
         super.onCreate()
-        MusicPlayerHelper.initialize(this)
-        registerActivityLifecycleCallbacks(this)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+        startService(Intent(this, MusicService::class.java)) // Start the music service when the app launches
     }
 
-    override fun onActivityStarted(activity: Activity) {
-        if (activityCount == 0) {
-            MusicPlayerHelper.startMusic()
-        }
-        activityCount++
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    fun onAppBackgrounded() {
+        // Pause music when app goes to background
+        stopService(Intent(this, MusicService::class.java))
     }
 
-    override fun onActivityStopped(activity: Activity) {
-        activityCount--
-        if (activityCount == 0) {
-            MusicPlayerHelper.stopMusic()
-        }
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    fun onAppForegrounded() {
+        // Resume music when app comes to foreground
+        startService(Intent(this, MusicService::class.java))
     }
-
-    override fun onTerminate() {
-        super.onTerminate()
-        unregisterActivityLifecycleCallbacks(this)
-        MusicPlayerHelper.release()
-    }
-
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-        override fun onActivityResumed(activity: Activity) {}
-        override fun onActivityPaused(activity: Activity) {}
-        override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-        override fun onActivityDestroyed(activity: Activity) {}
-    }
+}
