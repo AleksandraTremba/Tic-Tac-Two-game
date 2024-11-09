@@ -2,6 +2,7 @@ package com.taltech.ee.tic_tac_two
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
@@ -121,15 +122,14 @@ class MainActivity : AppCompatActivity() {
     private fun botTurn() {
         Log.d("BOT", "bot started the turn")
         // Determine if the bot will hold
-        val shouldHold = Random.nextInt(100) < 30 // 30% chance to hold
+        val shouldHold = Random.nextInt(100) < 30
 
         if (shouldHold) {
             val randomButton = (1..25).random()
             enable3x3Grid(randomButton)
             Log.d("BOT", "bot held $randomButton")
-            // Switch back to player X after bot's turn
             currentPlayer = "X"
-            updatePlayerImages() // Update the UI to reflect the current player
+            updatePlayerImages()
             return
         }
         Log.d("BOT", "bot didnt hold any button")
@@ -150,13 +150,11 @@ class MainActivity : AppCompatActivity() {
         var randomRow: Int
         var randomColumn: Int
         do {
-            // Randomly select a row and column
             randomRow = Random.nextInt(minRow, maxRow + 1)
             randomColumn = Random.nextInt(minColumn, maxColumn + 1)
-            // Calculate the button index based on selected row and column
             selectedButton = randomRow * 5 + randomColumn + 1
-            buttonIsEmpty = gameState[randomRow][randomColumn] == "" // Check if the button is empty
-        } while (!buttonIsEmpty) // Repeat until an empty button is found
+            buttonIsEmpty = gameState[randomRow][randomColumn] == ""
+        } while (!buttonIsEmpty)
 
         // Update game state and button text for the bot's turn
         val button = buttonMap[selectedButton]
@@ -176,9 +174,8 @@ class MainActivity : AppCompatActivity() {
         Log.d("BOT", "bot made the turn")
 
 
-        // Switch back to player X after bot's turn
         currentPlayer = "X"
-        updatePlayerImages() // Update the UI to reflect the current player
+        updatePlayerImages()
     }
 
 
