@@ -20,12 +20,16 @@ class MusicService : JobIntentService() {
         }
     }
 
-    override fun onHandleWork(intent: Intent) {
-        when (intent.action) {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
             "PAUSE_MUSIC" -> pauseMusic()
             "RESUME_MUSIC" -> resumeMusic()
             "STOP_MUSIC" -> stopMusic() // Fully stops the music and releases resources
+            else -> if (mediaPlayer?.isPlaying == false && !isPaused) {
+                mediaPlayer?.start()
+            }
         }
+        return START_STICKY
     }
 
     private fun pauseMusic() {
@@ -63,10 +67,15 @@ class MusicService : JobIntentService() {
         super.onDestroy()
     }
 
-    companion object {
-        // Helper method to enqueue work
-        fun enqueueWork(context: Context, work: Intent) {
-            enqueueWork(context, MusicService::class.java, 1, work)
+    override fun onBind(intent: Intent): IBinder? = null
+
+    override fun onHandleWork(intent: Intent) {
+        when (intent.action) {
+            "PAUSE_MUSIC" -> pauseMusic()
+            "RESUME_MUSIC" -> resumeMusic()
+            "STOP_MUSIC" -> stopMusic() // Fully stops the music and releases resources
         }
+
     }
+
 }

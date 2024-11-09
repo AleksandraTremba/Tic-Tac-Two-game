@@ -31,13 +31,20 @@ class SettingsActivity : AppCompatActivity() {
 
         stopMusicButton.setOnClickListener {
             toggleMusic()
-            updateMusicButtonText()
+            updateMusicButtonText() // Immediately update button text
         }
 
         toggleSoundButton.setOnClickListener {
             toggleSoundEffects()
             updateSoundButtonText()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Ensure the music state is updated when the activity is resumed
+        isMusicPaused = sharedPreferences.getBoolean("isMusicPaused", false)
+        updateMusicButtonText() // Update the button text when returning to the activity
     }
 
     private fun toggleMusic() {
@@ -49,7 +56,13 @@ class SettingsActivity : AppCompatActivity() {
             musicIntent.action = "PAUSE_MUSIC"
             startService(musicIntent)
         }
-        isMusicPaused = !isMusicPaused // Toggle the state
+        isMusicPaused = !isMusicPaused // Toggle the state in memory
+        // Save the current music state to preferences immediately
+        updateMusicStateInPreferences(isMusicPaused)
+    }
+
+    private fun updateMusicStateInPreferences(isPaused: Boolean) {
+        editor.putBoolean("isMusicPaused", isPaused).apply()
     }
 
     private fun toggleSoundEffects() {
