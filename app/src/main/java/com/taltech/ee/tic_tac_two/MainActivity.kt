@@ -104,9 +104,8 @@ class MainActivity : AppCompatActivity() {
             button.setOnLongClickListener {
                 val tag = it.tag.toString().toInt()
                 enable3x3Grid(tag)
-                checkWin()
                 if (checkWin()) {
-                    Toast.makeText(this, "Player $currentPlayer wins!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "$currentPlayer wins!", Toast.LENGTH_SHORT).show()
                     resetGame()
                 }
                 if (isBotActive && currentPlayer == "O") {
@@ -132,6 +131,11 @@ class MainActivity : AppCompatActivity() {
             Log.d("BOT", "bot held $randomButton")
             currentPlayer = "X"
             updatePlayerImages()
+            if (checkWin()) {
+                Toast.makeText(this, "$currentPlayer wins!", Toast.LENGTH_SHORT).show()
+                resetGame()
+                return
+            }
             return
         }
         Log.d("BOT", "bot didnt hold any button")
@@ -260,8 +264,24 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkWin(): Boolean {
         Log.d("WIN", "Just checked for the win")
-        val centerRow = (currentGridCenter - 1) / 5
-        val centerColumn = (currentGridCenter - 1) % 5
+        val tagRow = (currentGridCenter - 1) / 5
+        val tagColumn = (currentGridCenter - 1) % 5
+        Log.d("WIN", "tag row: $tagRow")
+        Log.d("WIN", "tag column: $tagColumn")
+
+
+
+        var centerRow = when (tagRow) {
+            0 -> 1
+            4 -> 3
+            else -> tagRow
+        }
+
+        var centerColumn = when (tagColumn) {
+           0 -> 1
+            4 -> 3
+            else -> tagColumn
+        }
 
         val minRow = maxOf(0, centerRow - 1)
         val maxRow = minOf(4, centerRow + 1)
@@ -272,62 +292,35 @@ class MainActivity : AppCompatActivity() {
 
         Log.d("WIN", "Current 3x3 grid:")
         for (row in minRow..maxRow) {
-            val rowString = (minColumn..maxColumn).joinToString("") {
-                when (gameState[row][it]) {
-                    "X" -> "X"
-                    "O" -> "O"
-                    else -> "-" // Empty cell
+            val rowString = (minColumn..maxColumn).joinToString("") { col ->
+                if (row in 0..4 && col in 0..4) {
+                    when (gameState[row][col]) {
+                        "X" -> "X"
+                        "O" -> "O"
+                        else -> "-"
+                    }
+                } else {
+                    "-" // Placeholder for out-of-bounds cells
                 }
             }
             Log.d("WIN", rowString)
         }
 
+
         // Check rows and columns
         for (row in minRow..maxRow) {
-            Log.d("WIN", "Checking row $row for player $currentPlayer")
-            for (col in minColumn..maxColumn) {
-                Log.d("WIN", "Cell [$row][$col] = ${gameState[row][col]}")
-            }
-            if ((minColumn..maxColumn).all { gameState[row][it] == currentPlayer }) {
-                Log.d("WIN", "Row $row is fully occupied by $currentPlayer. Win detected.")
-                winDetected = true
-            }
+            if ((minColumn..maxColumn).all { gameState[row][it] == currentPlayer }) winDetected = true
         }
-
         for (col in minColumn..maxColumn) {
-            Log.d("WIN", "Checking column $col for player $currentPlayer")
-            for (row in minRow..maxRow) {
-                Log.d("WIN", "Cell [$row][$col] = ${gameState[row][col]}")
-            }
-            if ((minRow..maxRow).all { gameState[it][col] == currentPlayer }) {
-                Log.d("WIN", "Column $col is fully occupied by $currentPlayer. Win detected.")
-                winDetected = true
-            }
+            if ((minRow..maxRow).all { gameState[it][col] == currentPlayer }) winDetected = true
         }
 
         // Check main diagonal (top-left to bottom-right)
-        Log.d("WIN", "Checking main diagonal for player $currentPlayer")
-        if ((minRow..maxRow).all {
-                val row = it
-                val col = it - minRow + minColumn
-                Log.d("WIN", "Cell [$row][$col] = ${gameState[row][col]}")
-                gameState[row][col] == currentPlayer
-            }) {
-            Log.d("WIN", "Main diagonal is fully occupied by $currentPlayer. Win detected.")
-            winDetected = true
-        }
+        if ((minRow..maxRow).all { gameState[it][it - minRow + minColumn] == currentPlayer }) winDetected = true
 
         // Check anti-diagonal (top-right to bottom-left)
-        Log.d("WIN", "Checking anti-diagonal for player $currentPlayer")
-        if ((minRow..maxRow).all {
-                val row = it
-                val col = maxColumn - (it - minRow)
-                Log.d("WIN", "Cell [$row][$col] = ${gameState[row][col]}")
-                gameState[row][col] == currentPlayer
-            }) {
-            Log.d("WIN", "Anti-diagonal is fully occupied by $currentPlayer. Win detected.")
-            winDetected = true
-        }
+        if ((minRow..maxRow).all { gameState[it][maxColumn - (it - minRow)] == currentPlayer }) winDetected = true
+
 
         if (winDetected) {
             // Increment the appropriate win counter

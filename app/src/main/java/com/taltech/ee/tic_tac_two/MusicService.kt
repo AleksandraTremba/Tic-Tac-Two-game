@@ -10,7 +10,7 @@ import androidx.core.app.JobIntentService
 
 class MusicService : JobIntentService() {
     private var mediaPlayer: MediaPlayer? = null
-    private var isPaused = false
+    private var isPaused = true
 
     override fun onCreate() {
         super.onCreate()
