@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
-    private var turnMediaPlayer: MediaPlayer? = null
+    private lateinit var dbHelper: GameDatabaseHelper
 
 
 
@@ -74,6 +74,8 @@ class MainActivity : AppCompatActivity() {
         isBotActive = isBotEnabled
 
         SoundEffectHelper.initialize(this)
+
+        dbHelper = GameDatabaseHelper(this)
 
 
         imageViewX = findViewById<Button>(R.id.x_button)
@@ -463,7 +465,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        MusicPlayerHelper.release()
         SoundEffectHelper.release()
         gameState = Array(5) { Array(5) { "" } }
         buttonMap.clear()
@@ -508,6 +509,63 @@ class MainActivity : AppCompatActivity() {
             button?.text = gameState[(i - 1) / 5][(i - 1) % 5]
             button?.isClickable = gameState[(i - 1) / 5][(i - 1) % 5].isEmpty()
         }
+    }
+
+    private fun saveGame() {
+        dbHelper.saveGameState(
+            gameState = gameState,
+            currentPlayer = currentPlayer,
+            xWins = xWins,
+            oWins = oWins,
+            humanWins = humanWins,
+            botWins = botWins,
+            gridCenter = currentGridCenter
+        )
+        Toast.makeText(this, "Game saved!", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun loadGame() {
+        dbHelper.loadGameState()?.let { data ->
+            gameState = data.gameState
+            currentPlayer = data.currentPlayer
+            xWins = data.xWins
+            oWins = data.oWins
+            humanWins = data.humanWins
+            botWins = data.botWins
+            currentGridCenter = data.gridCenter
+            updateUIAfterLoad()
+            Toast.makeText(this, "Game loaded!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        saveGame()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        saveGame()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        loadGame()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadGame()
+    }
+
+    private fun updateUIAfterLoad() {
+        for (i in 1..25) {
+            val button = buttonMap[i]
+            button?.text = gameState[(i - 1) / 5][(i - 1) % 5]
+            button?.isClickable = gameState[(i - 1) / 5][(i - 1) % 5].isEmpty()
+        }
+        updatePlayerImages()
+        enable3x3Grid(currentGridCenter)
     }
 
 }
