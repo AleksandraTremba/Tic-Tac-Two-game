@@ -2,7 +2,6 @@ package com.taltech.ee.tic_tac_two
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -14,7 +13,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
 import kotlin.random.Random
 
 
@@ -37,6 +35,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
     private lateinit var dbHelper: GameDatabaseHelper
+    private lateinit var statsDbHelper: StatisticsDatabaseHelper
+
+    private var xMoves = 0
+    private var oMoves = 0
 
 
 
@@ -50,25 +52,10 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        viewModel = ViewModelProvider(this).get(GameViewModel::class.java)
-
-        // Use viewModel to get and set data
-        currentPlayer = viewModel.currentPlayer
-        gameState = viewModel.gameState
-        xWins = viewModel.xWins
-        oWins = viewModel.oWins
-        humanWins = viewModel.humanWins
-        botWins = viewModel.botWins
-
         // Initialize SharedPreferences
         sharedPreferences = getSharedPreferences("TicTacToeStats", MODE_PRIVATE)
         editor = sharedPreferences.edit()
 
-        // Load previous stats
-        xWins = sharedPreferences.getInt("xWins", 0)
-        oWins = sharedPreferences.getInt("oWins", 0)
-        humanWins = sharedPreferences.getInt("humanWins", 0)
-        botWins = sharedPreferences.getInt("botWins", 0)
 
         val isBotEnabled = intent.getBooleanExtra("enableBot", false)
         isBotActive = isBotEnabled
@@ -76,11 +63,27 @@ class MainActivity : AppCompatActivity() {
         SoundEffectHelper.initialize(this)
 
         dbHelper = GameDatabaseHelper(this)
+        statsDbHelper = StatisticsDatabaseHelper(this)
+
+        val stats = statsDbHelper.loadStats()
+        if (stats != null) {
+            xWins = stats.xWins
+            oWins = stats.oWins
+            humanWins = stats.humanWins
+            botWins = stats.botWins
+        } else {
+            xWins = 0
+            oWins = 0
+            humanWins = 0
+            botWins = 0
+        }
+
 
 
         imageViewX = findViewById<Button>(R.id.x_button)
         imageViewO = findViewById<Button>(R.id.o_button)
         updatePlayerImages()
+
 
         val menuButton = findViewById<Button>(R.id.menuButton)
         menuButton.setOnClickListener {
@@ -93,6 +96,11 @@ class MainActivity : AppCompatActivity() {
             resetGame()
         }
 
+        if (isBotEnabled) {
+            Log.d("BOT", "current player: $currentPlayer")
+            resetGame() // Reset game state
+        }
+
         for (i in 1..25) {
             val buttonId = resources.getIdentifier("game_button$i", "id", packageName)
             val button = findViewById<Button>(buttonId)
@@ -102,20 +110,24 @@ class MainActivity : AppCompatActivity() {
             button.setOnClickListener {
                 onButtonClicked(button, i)
             }
-
             button.setOnLongClickListener {
-                val tag = it.tag.toString().toInt()
-                enable3x3Grid(tag)
-                if (checkWin()) {
-                    Toast.makeText(this, "$currentPlayer wins!", Toast.LENGTH_SHORT).show()
-                    resetGame()
-                }
+                if (xMoves >= 2 && oMoves >= 2) {
+                    val tag = it.tag.toString().toInt()
+                    enable3x3Grid(tag)
+                    if (checkWin()) {
+                        Toast.makeText(this, "$currentPlayer wins!", Toast.LENGTH_SHORT).show()
+                        resetGame()
+                    }
+                currentPlayer = if (currentPlayer == "X") "O" else "X"
+                updatePlayerImages()
                 if (isBotActive && currentPlayer == "O") {
                     Handler(Looper.getMainLooper()).postDelayed({
                         botTurn()
                     }, 1000)
                 }
+                }
                 true
+
             }
         }
     }
@@ -124,23 +136,27 @@ class MainActivity : AppCompatActivity() {
 
     private fun botTurn() {
         Log.d("BOT", "bot started the turn")
-        // Determine if the bot will hold
-        val shouldHold = Random.nextInt(100) < 30
+        if (currentPlayer != "O") return
+        if (xMoves >= 2 && oMoves >= 2) {
+            // Determine if the bot will hold
+            val shouldHold = Random.nextInt(100) < 30
 
-        if (shouldHold) {
-            val randomButton = (1..25).random()
-            enable3x3Grid(randomButton)
-            Log.d("BOT", "bot held $randomButton")
-            currentPlayer = "X"
-            updatePlayerImages()
-            if (checkWin()) {
-                Toast.makeText(this, "$currentPlayer wins!", Toast.LENGTH_SHORT).show()
-                resetGame()
+            if (shouldHold) {
+                val randomButton = (1..25).random()
+                enable3x3Grid(randomButton)
+                oMoves++
+                Log.d("BOT", "bot held $randomButton")
+                currentPlayer = "X"
+                updatePlayerImages()
+                if (checkWin()) {
+                    Toast.makeText(this, "$currentPlayer wins!", Toast.LENGTH_SHORT).show()
+                    resetGame()
+                    return
+                }
                 return
             }
-            return
+            Log.d("BOT", "bot didnt hold any button")
         }
-        Log.d("BOT", "bot didnt hold any button")
 
 
         // Get the center row and column of the current grid
@@ -163,6 +179,7 @@ class MainActivity : AppCompatActivity() {
             selectedButton = randomRow * 5 + randomColumn + 1
             buttonIsEmpty = gameState[randomRow][randomColumn] == ""
         } while (!buttonIsEmpty)
+        oMoves++
 
         // Update game state and button text for the bot's turn
         val button = buttonMap[selectedButton]
@@ -228,9 +245,17 @@ class MainActivity : AppCompatActivity() {
                         return
                     }
 
+                    if (currentPlayer == "X") {
+                        xMoves++
+                    } else {
+                        oMoves++
+                    }
+
                     // Switch player
-                    currentPlayer = if (currentPlayer == "X") "O" else "X"
-                    updatePlayerImages()
+                    Log.d("LoadGame", "Changes current player in on button cliecked: $currentPlayer")
+                        currentPlayer = if (currentPlayer == "X") "O" else "X"
+                    Log.d("LoadGame", "Changes current player in on button cliecked: $currentPlayer")
+                        updatePlayerImages()
                 }
             }
         } else {
@@ -249,7 +274,7 @@ class MainActivity : AppCompatActivity() {
                             return
                         }
 
-                        // Schedule the bot's turn after a short delay
+                        xMoves++
                         currentPlayer = if (currentPlayer == "X") "O" else "X"
                         updatePlayerImages()
 
@@ -302,47 +327,54 @@ class MainActivity : AppCompatActivity() {
                         else -> "-"
                     }
                 } else {
-                    "-" // Placeholder for out-of-bounds cells
+                    "-"
                 }
             }
             Log.d("WIN", rowString)
         }
 
+        //For X player
 
         // Check rows and columns
         for (row in minRow..maxRow) {
-            if ((minColumn..maxColumn).all { gameState[row][it] == currentPlayer }) winDetected = true
+            if ((minColumn..maxColumn).all { gameState[row][it] == "X" }) winDetected = true
         }
         for (col in minColumn..maxColumn) {
-            if ((minRow..maxRow).all { gameState[it][col] == currentPlayer }) winDetected = true
+            if ((minRow..maxRow).all { gameState[it][col] == "X" }) winDetected = true
         }
 
         // Check main diagonal (top-left to bottom-right)
-        if ((minRow..maxRow).all { gameState[it][it - minRow + minColumn] == currentPlayer }) winDetected = true
+        if ((minRow..maxRow).all { gameState[it][it - minRow + minColumn] == "X" }) winDetected = true
 
         // Check anti-diagonal (top-right to bottom-left)
-        if ((minRow..maxRow).all { gameState[it][maxColumn - (it - minRow)] == currentPlayer }) winDetected = true
+        if ((minRow..maxRow).all { gameState[it][maxColumn - (it - minRow)] == "X" }) winDetected = true
+
+        //For O player
+
+        // Check rows and columns
+        for (row in minRow..maxRow) {
+            if ((minColumn..maxColumn).all { gameState[row][it] == "O" }) winDetected = true
+        }
+        for (col in minColumn..maxColumn) {
+            if ((minRow..maxRow).all { gameState[it][col] == "O" }) winDetected = true
+        }
+
+        // Check main diagonal (top-left to bottom-right)
+        if ((minRow..maxRow).all { gameState[it][it - minRow + minColumn] == "O" }) winDetected = true
+
+        // Check anti-diagonal (top-right to bottom-left)
+        if ((minRow..maxRow).all { gameState[it][maxColumn - (it - minRow)] == "O" }) winDetected = true
 
 
         if (winDetected) {
-            // Increment the appropriate win counter
-            if (isBotActive) {
-                if (currentPlayer == "O") { // Bot wins
-                    botWins++
-                    editor.putInt("botWins", botWins).apply()
-                } else { // Human wins
-                    humanWins++
-                    editor.putInt("humanWins", humanWins).apply()
-                }
-            } else { // Human vs Human
-                if (currentPlayer == "X") {
-                    xWins++
-                    editor.putInt("xWins", xWins).apply()
-                } else {
-                    oWins++
-                    editor.putInt("oWins", oWins).apply()
-                }
+            when {
+                isBotActive && currentPlayer == "O" -> botWins++
+                isBotActive -> humanWins++
+                currentPlayer == "X" -> xWins++
+                else -> oWins++
             }
+            // Save the updated stats to the database
+            statsDbHelper.saveStats(xWins, oWins, humanWins, botWins)
             return true
         }
 
@@ -356,6 +388,8 @@ class MainActivity : AppCompatActivity() {
             button.isClickable
         }
         currentPlayer = "X" // Reset to Player X
+        xMoves = 0  // Reset X player moves
+        oMoves = 0  // Reset O player moves
         for (i in gameState.indices) {
             for (j in gameState[i].indices) {
                 gameState[i][j] = "" // Reset game state
@@ -364,6 +398,7 @@ class MainActivity : AppCompatActivity() {
         currentGridCenter = 13  // Ensure the center is reset to 13
         enable3x3CenterGrid() // Re-enable center grid
         updatePlayerImages()
+        saveGame()
     }
 
     private fun enable3x3CenterGrid() {
@@ -452,9 +487,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         checkWin()
-
-        currentPlayer = if (currentPlayer == "X") "O" else "X"
-        updatePlayerImages()
     }
 
     fun enableBot() {
@@ -471,72 +503,34 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-
-        // Save the game state, including the game grid and the current player
-        outState.putSerializable("gameState", gameState)
-        outState.putString("currentPlayer", currentPlayer)
-        outState.putInt("currentGridCenter", currentGridCenter)
-
-        // Save any other states like wins if needed
-        outState.putInt("xWins", xWins)
-        outState.putInt("oWins", oWins)
-        outState.putInt("humanWins", humanWins)
-        outState.putInt("botWins", botWins)
-
-    }
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-
-        // Restore the game state
-        gameState = savedInstanceState.getSerializable("gameState") as Array<Array<String>>
-        currentPlayer = savedInstanceState.getString("currentPlayer", "X") ?: "X"
-        currentGridCenter = savedInstanceState.getInt("currentGridCenter", 13)
-        enable3x3Grid(currentGridCenter)
-        // Restore the win counters if needed
-        xWins = savedInstanceState.getInt("xWins", 0)
-        oWins = savedInstanceState.getInt("oWins", 0)
-        humanWins = savedInstanceState.getInt("humanWins", 0)
-        botWins = savedInstanceState.getInt("botWins", 0)
-
-        // Update the UI (button texts and colors) after restoring the state
-        updatePlayerImages()
-
-        // Restore the buttons' texts
-        for (i in 1..25) {
-            val button = buttonMap[i]
-            button?.text = gameState[(i - 1) / 5][(i - 1) % 5]
-            button?.isClickable = gameState[(i - 1) / 5][(i - 1) % 5].isEmpty()
-        }
-    }
-
     private fun saveGame() {
+        Log.d("LoadGame", "Saving gameState: ${gameState.contentDeepToString()}")
         dbHelper.saveGameState(
             gameState = gameState,
             currentPlayer = currentPlayer,
-            xWins = xWins,
-            oWins = oWins,
-            humanWins = humanWins,
-            botWins = botWins,
-            gridCenter = currentGridCenter
+            gridCenter = currentGridCenter,
+            oMoves = oMoves,
+            xMoves = xMoves
         )
-        Toast.makeText(this, "Game saved!", Toast.LENGTH_SHORT).show()
     }
 
     private fun loadGame() {
         dbHelper.loadGameState()?.let { data ->
-            gameState = data.gameState
-            currentPlayer = data.currentPlayer
-            xWins = data.xWins
-            oWins = data.oWins
-            humanWins = data.humanWins
-            botWins = data.botWins
-            currentGridCenter = data.gridCenter
-            updateUIAfterLoad()
-            Toast.makeText(this, "Game loaded!", Toast.LENGTH_SHORT).show()
+            Log.d("LoadGame", "Loaded data: ${data.gameState.contentDeepToString()}")
+            if (data.gameState.isNotEmpty() && data.gameState.size == 5 && data.gameState[0].size == 5) {
+                gameState = data.gameState
+                currentPlayer = data.currentPlayer
+                currentGridCenter = data.gridCenter
+                oMoves = data.oMoves
+                xMoves = data.xMoves
+                updateUIAfterLoad()
+                Log.d("LoadGame", "Loaded with current player in bd ${data.currentPlayer} but $currentPlayer and id ${data.id}")
+            } else {
+                Log.d("LoadGame", "Failed to load game: Data is invalid")
+            }
         }
     }
+
 
     override fun onPause() {
         super.onPause()

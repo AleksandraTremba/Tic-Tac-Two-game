@@ -7,7 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 
 class StatsActivity : AppCompatActivity() {
-    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var databaseHelper: StatisticsDatabaseHelper
 
     private lateinit var textXWins: TextView
     private lateinit var textOWins: TextView
@@ -19,8 +19,9 @@ class StatsActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         setContentView(R.layout.activity_stats)
-        // Initialize SharedPreferences
-        sharedPreferences = getSharedPreferences("TicTacToeStats", MODE_PRIVATE)
+
+        // Initialize Database Helper
+        databaseHelper = StatisticsDatabaseHelper(this)
 
         // Get TextViews
         textXWins = findViewById(R.id.textXWins)
@@ -28,16 +29,13 @@ class StatsActivity : AppCompatActivity() {
         textHumanWins = findViewById(R.id.textHumanWins)
         textBotWins = findViewById(R.id.textBotWins)
 
-        // Load stats
-        val xWins = sharedPreferences.getInt("xWins", 0)
-        val oWins = sharedPreferences.getInt("oWins", 0)
-        val humanWins = sharedPreferences.getInt("humanWins", 0)
-        val botWins = sharedPreferences.getInt("botWins", 0)
+        // Load stats from the database
+        val stats = databaseHelper.loadStats()
 
-        // Display stats
-        textXWins.text = "X Wins: $xWins"
-        textOWins.text = "O Wins: $oWins"
-        textHumanWins.text = "Human Wins: $humanWins"
-        textBotWins.text = "Bot Wins: $botWins"
+        // Display stats, defaulting to 0 if stats are null
+        textXWins.text = "X Wins: ${stats?.xWins ?: 0}"
+        textOWins.text = "O Wins: ${stats?.oWins ?: 0}"
+        textHumanWins.text = "Human Wins: ${stats?.humanWins ?: 0}"
+        textBotWins.text = "Bot Wins: ${stats?.botWins ?: 0}"
     }
 }

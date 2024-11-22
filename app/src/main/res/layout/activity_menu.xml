@@ -41,7 +41,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingTop="16dp"
-                android:text="Place Xs and Os into the 3x3 grid on the gameboard. Hold the desired button to move the little grid."
+                android:text="Place Xs and Os into the 3x3 grid on the gameboard. When each player places 2 tokens, Hold the desired button to move the little grid!"
                 android:textAlignment="center"
                 android:textSize="16sp" />
 
