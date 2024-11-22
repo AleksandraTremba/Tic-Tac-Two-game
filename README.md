@@ -12,19 +12,27 @@
 
 #### Game UI
 - Different screens
+<br>
+
 ![](assets/empty.png)
 ![](assets/menu.png)
 ![](assets/settings.png)
 ![](assets/stats.png)
 
 - Supports landscape rotation
+<br>
+
 ![](assets/full.png)
 ![](assets/landscape.png)
 
 - Gameplay screen (main activity) supports rotation AND tablet screen size. The rest are simple and responsive!
+<br>
+
 ![](assets/layouts.png)
 
 - Supports dark/light mode (system based)
+<br>
+
 ![](assets/light.png)
 ![](assets/light_landscape.png)
 ![](assets/themes.png)
@@ -36,6 +44,8 @@
 - Saves game state when game is closed, and loads it when it opens again
 - Statistics are saved to see how it changed over time
 - Single table with just single state for every saved game
+<br>
+
 ![](assets/db.png)
 
 
