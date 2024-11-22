@@ -1,0 +1,29 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme for dark mode. -->
+    <style name="Base.Theme.Tictactwo" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your dark theme here. -->
+        <item name="android:windowBackground">@color/colorBackgroundDark</item>
+        <item name="colorPrimary">@color/colorButtonDark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/colorButtonGridDark</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:textColor">@color/colorTextDark</item>
+        <item name="android:buttonStyle">@style/MyButtonDark</item>
+        <item name="colorSurface">@color/colorCardBackground</item>
+        <item name="cardViewStyle">@style/MyCardView</item>
+        <!-- Custom button style -->
+    </style>
+
+    <style name="Theme.Tictactwo" parent="Base.Theme.Tictactwo">
+        <!-- Additional customizations for the dark theme can go here -->
+    </style>
+
+    <style name="MyCardView" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/colorCardBackgroundDark</item>
+    </style>
+
+    <style name="MyButtonDark">
+        <item name="android:background">@color/colorButtonDark</item>
+        <item name="android:textColor">@color/colorTextDark</item>
+    </style>
+</resources>
