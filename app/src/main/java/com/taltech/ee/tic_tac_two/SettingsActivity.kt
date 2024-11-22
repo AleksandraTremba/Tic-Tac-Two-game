@@ -20,11 +20,15 @@ class SettingsActivity : AppCompatActivity() {
 
         toggleSoundButton = findViewById(R.id.toggleSoundButton)
 
+        // Ensure the button text is set based on current sound setting
+        updateSoundButtonText()
+
         toggleSoundButton.setOnClickListener {
             toggleSoundEffects()
             updateSoundButtonText()
         }
     }
+
 
     private fun toggleSoundEffects() {
         val soundEffectsEnabled = sharedPreferences.getBoolean("soundEffectsEnabled", true)
