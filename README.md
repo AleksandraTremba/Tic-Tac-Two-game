@@ -52,6 +52,7 @@
 #### Gameplay
 - Users play tic tac toe on 3x3 grid
 - When 2 tokens from each player is placed, the grid can be moved across bigger, 5x5 grid. Moving the grid counts as a turn
+- Moving grid is using drag-and-drop buttons to place
 - Human vs Human and Human vs Bot supported
 - Bot functionality! (30% chance that he will move the grid)
 - All wins are saved for statistics
