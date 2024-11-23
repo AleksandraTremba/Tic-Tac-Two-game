@@ -1,5 +1,6 @@
 package com.taltech.ee.tic_tac_two
 
+import android.content.ClipData
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -7,6 +8,8 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.util.TypedValue
+import android.view.DragEvent
+import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -110,27 +113,82 @@ class MainActivity : AppCompatActivity() {
             button.setOnClickListener {
                 onButtonClicked(button, i)
             }
+
             button.setOnLongClickListener {
-                if (xMoves >= 2 && oMoves >= 2) {
-                    val tag = it.tag.toString().toInt()
-                    enable3x3Grid(tag)
-                    if (checkWin()) {
-                        Toast.makeText(this, "$currentPlayer wins!", Toast.LENGTH_SHORT).show()
-                        resetGame()
-                    }
-                currentPlayer = if (currentPlayer == "X") "O" else "X"
-                updatePlayerImages()
-                if (isBotActive && currentPlayer == "O") {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        botTurn()
-                    }, 1000)
-                }
-                }
+                val dragData = ClipData.newPlainText("tag", i.toString())
+                val shadow = View.DragShadowBuilder(it)
+                it.startDragAndDrop(dragData, shadow, null, 0)
                 true
+            }
+
+            button.setOnDragListener { v, event ->
+                when (event.action) {
+                    DragEvent.ACTION_DRAG_STARTED -> {
+                        true // Indicate we accept the drag
+                    }
+                    DragEvent.ACTION_DRAG_ENTERED -> {
+                        v.alpha = 0.5f // Highlight the target button
+                        true
+                    }
+                    DragEvent.ACTION_DRAG_EXITED -> {
+                        v.alpha = 1f // Remove highlight
+                        true
+                    }
+                    DragEvent.ACTION_DROP -> {
+                        v.alpha = 1f
+                        val droppedTag = event.clipData.getItemAt(0).text.toString().toInt()
+                        val targetTag = v.tag.toString().toInt()
+                        if (xMoves >= 2 && oMoves >= 2) {
+                            handleGridMove(droppedTag, targetTag)
+                        }
+                        true
+                    }
+                    DragEvent.ACTION_DRAG_ENDED -> {
+                        v.alpha = 1f // Ensure highlight is removed
+                        true
+                    }
+                    else -> false
+                }
 
             }
         }
+
+//            button.setOnLongClickListener {
+//                if (xMoves >= 2 && oMoves >= 2) {
+//                    val tag = it.tag.toString().toInt()
+//                    enable3x3Grid(tag)
+//                    if (checkWin()) {
+//                        Toast.makeText(this, "$currentPlayer wins!", Toast.LENGTH_SHORT).show()
+//                        resetGame()
+//                    }
+//                currentPlayer = if (currentPlayer == "X") "O" else "X"
+//                updatePlayerImages()
+//                if (isBotActive && currentPlayer == "O") {
+//                    Handler(Looper.getMainLooper()).postDelayed({
+//                        botTurn()
+//                    }, 1000)
+//                }
+//                }
+//                true
+//            }
+        }
+
+    private fun handleGridMove(droppedTag: Int, targetTag: Int) {
+        currentGridCenter = targetTag
+        enable3x3Grid(currentGridCenter)
+        if (checkWin()) {
+            Toast.makeText(this, "$currentPlayer wins!", Toast.LENGTH_SHORT).show()
+            resetGame()
+        }
+        currentPlayer = if (currentPlayer == "X") "O" else "X"
+        updatePlayerImages()
+        if (isBotActive && currentPlayer == "O") {
+            Handler(Looper.getMainLooper()).postDelayed({
+                botTurn()
+            }, 1000)
+        }
     }
+
 
 
 
