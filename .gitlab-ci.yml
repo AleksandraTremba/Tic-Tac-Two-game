@@ -1,0 +1,44 @@
+#Alus kettatõmmis, mida kasutatakse rakenduse kompileerimisel
+image: jangrewe/gitlab-ci-android:latest
+ 
+#Siin sektsioonis on defineeritud vastavad muutujad, mida kasutame
+variables:
+  #Kasutaja vahetab selle vastavalt $SCREENSHOT või $ESPRESSO, olenevalt mis tüüpi teste soovitakse jooksutada
+  REPORT_TYPE: $SCREENSHOT  
+  #Võimalus vahetada välja enda emaili vastu, vastasel juhul saadetakse testimistulemused, üliõpilaskoodi emaili peale. Kui soovid mõnda muud emaili kasutada siis peab järgnev rida välja näegema, kui soovid saada testimistulemused UNIID peale, ei pea midagi tegema.   
+  EMAIL: ${GITLAB_USER_EMAIL}
+ 
+  #Järgnevad muutujad on konstandid
+  SCREENSHOT: "screenshot" #Seda kasutatakse kuvatõmmiste testiks
+  ESPRESSO: "espresso" #Seda kasutatakse Espresso tüüpi testiks
+ 
+#Järgnev sektsioon on selleks, et järgnev jooksutamine oleks kiirem
+cache:
+  key: ${CI_PROJECT_ID}
+  paths:
+    - .gradle/
+ 
+#Siin sektsioonis tegeletakse koodis artefakti kompileerimiseks. Seda tehakse kompileerimis serveris Dockeri konteineris
+assembleArtifacts:
+  stage: build
+  allow_failure: false
+  when: manual
+  script:
+    #Seadistakse keskkond ja luuakse kaks artefakti, mis on vajalikud Testlab programmiks
+    - export GRADLE_USER_HOME=$(pwd)/.gradle
+    - chmod +x ./gradlew
+    - ./gradlew assembleDebug
+    - ./gradlew assembleAndroidTest
+  #Defineerime millised failid soovime edastada järgmisesse sektsiooni
+  artifacts:
+    paths:
+      - app/build/outputs/apk
+ 
+#Siin sektsioonis edastakse vajalik info Jenkins CI/CD serverile.
+testArtifacts:
+  stage: test
+  dependencies:
+    - assembleArtifacts
+  script:
+    - curl -X POST http://smartlab.ttu.ee:9090/buildByToken/buildWithParameters?job=Android -F token=gW0QBcGUftU5RJNVPlr3Fkrh8D7WSk5s -F projectId=${CI_PROJECT_ID} -F testingType=${REPORT_TYPE} -F email=${EMAIL}
+    
